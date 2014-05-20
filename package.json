@@ -1,0 +1,44 @@
+{
+  "name": "korest",
+  "version": "0.0.0",
+  "description": "Maps JSON object into knockout observable with bound REST actions.",
+  "license": "MIT",
+  "main": "korest.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sergeyt/korest.git"
+  },
+  "keywords": [
+    "knockout",
+    "rest"
+  ],
+  "author": "Sergey Todyshev <stodyshev@gmail.com>",
+  "contributors": [
+    "Sergey Todyshev <stodyshev@gmail.com>"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.0",
+    "knockout": "~3.1.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4",
+    "grunt-contrib-jshint": "~0.10",
+    "grunt-npm": "~0.0.2",
+    "grunt-bump": "~0.0.13",
+    "grunt-auto-release": "~0.0.6",
+    "grunt-cli": "~0.1",
+    "karma-chrome-launcher": "~0.1",
+    "karma-jasmine": "~0.2",
+    "karma-coffee-preprocessor": "~0.2",
+    "karma-phantomjs-launcher": "~0.1",
+    "karma": "~0.12",
+    "karma-coverage": "~0.2",
+    "karma-mocha": "~0.1",
+    "grunt-karma": "~0.8",
+    "should": "~3.3"
+  },
+  "scripts": {
+    "lint": "grunt lint",
+    "test": "grunt test"
+  }
+}
