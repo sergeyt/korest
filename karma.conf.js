@@ -35,6 +35,7 @@ module.exports = function(config) {
 			'node_modules/jquery/dist/jquery.js',
 			knockout,
 			'node_modules/should/should.js',
+			'node_modules/sinon/pkg/sinon.js',
 			pkg.main,
 			'test/*.coffee'
 		],
