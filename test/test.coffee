@@ -47,6 +47,27 @@ describe 'ko.rest', ->
 			ko.isObservable(m.items()[0].value).should.be.true;
 			m.items()[0].value().should.eql 'test'
 
+	describe 'should unwrap', ->
+		it 'simple object', ->
+			obj = {name: 'test'}
+			m = ko.rest obj, {url: '/model'}
+			m.unwrap().should.eql obj
+
+		it 'nested object', ->
+			obj = {info: {name: 'test'}}
+			m = ko.rest obj, {url: '/model'}
+			m.unwrap().should.eql obj
+
+		it 'simple array', ->
+			obj = {items: ['test']}
+			m = ko.rest obj, {url: '/model'}
+			m.unwrap().should.eql obj
+
+		it 'complex array', ->
+			obj = {items: [{value: 'test'}]}
+			m = ko.rest obj, {url: '/model'}
+			m.unwrap().should.eql obj
+
 	describe 'should update', ->
 		it 'simple object', ->
 			obj = {name: 'test'}

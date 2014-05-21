@@ -55,7 +55,24 @@
 			});
 		};
 
+		wrapper.unwrap = function(){
+			return unwrap_object(wrapper);
+		};
+
 		return wrapper;
+	}
+
+	function unwrap_object(wrapper) {
+		var obj = {};
+		Object.keys(wrapper).forEach(function(key) {
+			var val = wrapper[key];
+			if ($.isFunction(val.unwrap)) {
+				obj[key] = val.unwrap();
+			} else if (!$.isFunction(val)) {
+				obj[key] = val;
+			}
+		});
+		return obj;
 	}
 
 	function wrap_value(value, options) {
@@ -99,6 +116,10 @@
 			field(newValue);
 		};
 
+		property.unwrap = function() {
+			return field();
+		};
+
 		return property;
 	}
 
@@ -131,7 +152,7 @@
 		function update_item(newItem, index) {
 			var underlyingArray = items.peek();
 			var item = underlyingArray[index];
-			if (isObject(item) && typeof item.update == 'function') {
+			if (isObject(item) && $.isFunction(item.update)) {
 				item.update(newItem);
 			} else {
 				// primitive value, just replace
@@ -163,6 +184,16 @@
 			});
 		};
 
+		items.unwrap = function() {
+			return items.peek().map(function(item) {
+				if (isObject(item) && $.isFunction(item.unwrap)) {
+					return item.unwrap();
+				} else {
+					return item;
+				}
+			});
+		};
+
 		// add and wrap existing items
 		array.forEach(function(item, index) {
 			items.push(wrap_item(item, index, options));
@@ -186,7 +217,7 @@
 			if (obj.hasOwnProperty(key)) {
 				var cur = wrapper[key];
 				var val = obj[key];
-				if (typeof cur.update == 'function') {
+				if ($.isFunction(cur.update)) {
 					cur.update(val);
 				}
 			} else {
