@@ -1,6 +1,6 @@
 {
   "name": "korest",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Maps JSON object into knockout observable with bound REST actions.",
   "license": "MIT",
   "main": "korest.js",
