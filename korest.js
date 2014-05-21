@@ -2,13 +2,10 @@
 
 	var defaults = {
 		options: {
-			valueKey: 'Value',
-			itemKey: 'Item',
-			indexKey: 'Index'
+			modelKey: 'ViewModel'
 		}
 	};
 
-	// TODO initial GET of model
 	ko.rest = function(obj, options) {
 		if (!isObject(obj)) {
 			throw new Error("Input object is required.");
@@ -16,18 +13,49 @@
 		if (!isObject(options)) {
 			throw new Error("Options are not specified.");
 		}
+		if (typeof options.url != 'string' || !options.url) {
+			throw new Error("Missing required url option.");
+		}
+
 		options = $.extend({}, defaults.options, options);
-		return wrap_object(obj, options);
+
+		var root;
+
+		// deep update when response has the whole model
+		options.fullUpdate = function(d) {
+			if (!d.hasOwnProperty(options.modelKey)) {
+				return false;
+			}
+			root.update(d[options.modelKey]);
+			return true;
+		};
+
+		root = wrap_object(obj, options);
+
+		return root;
 	};
 
 	function wrap_object(obj, options) {
-		var result = {};
+		var wrapper = {};
+
 		Object.keys(obj).forEach(function(key) {
 			var val = obj[key];
 			var opts = append_url(options, key);
-			result[key] = wrap_value(val, opts);
+			wrapper[key] = wrap_value(val, opts);
 		});
-		return result;
+
+		wrapper.update = function(obj) {
+			update_object(wrapper, obj);
+		};
+
+		wrapper.sync = function() {
+			return ajax('GET', options.url).done(function(obj) {
+				update_object(wrapper, obj);
+				return obj;
+			});
+		};
+
+		return wrapper;
 	}
 
 	function wrap_value(value, options) {
@@ -43,83 +71,144 @@
 	function wrap_property(value, options) {
 		var field = ko.observable(value);
 
-		return ko.computed({
+		var property = ko.computed({
 			read: function() {
 				// TODO GET latest value from server
 				return field();
 			},
 			write: function(newValue) {
-				var data = make_obj(options.valueKey, newValue);
-				ajax('UPDATE', options.url, data).then(function(d) {
+				if (field() === newValue) return;
+				ajax('UPDATE', options.url, newValue).then(function(d) {
+					if (options.fullUpdate(d)) return d;
 					field(newValue);
-					// TODO full update
+					return d;
 				}).fail(function(error) {
 					// TODO validation error
 				});
 			}
 		});
+
+		property.sync = function() {
+			return ajax('GET', options.url).then(function(val) {
+				field(val);
+				return val;
+			});
+		};
+
+		property.update = function(newValue) {
+			field(newValue);
+		};
+
+		return property;
 	}
 
-	function wrap_array(value, options) {
-		var arr = ko.observableArray();
+	function wrap_array(array, options) {
+		var items = ko.observableArray();
 
-		arr.insert = function(item, index) {
-			var data = make_obj(options.itemKey, item);
-			data[options.indexKey] = index;
-			return ajax('PUT', options.url, data).then(function(d) {
-				// TODO full update
-				arr.push(wrap_item(d.Item, arr.length));
+		// TODO support insert operation
+
+		items.add = function(args) {
+			return ajax('PUT', options.url, args).then(function(d) {
+				if (options.fullUpdate(d)) return d;
+				items.push(wrap_item(d, items.length));
+				return d;
 			}).fail(function(error) {
 				// TODO validation error
 			});
 		};
 
-		arr.add = function(item) {
-			return arr.insert(item, arr.length);
-		};
-
-		arr.removeAt = function(index) {
-			var data = make_obj(options.indexKey, index);
+		items.removeAt = function(index) {
 			var url = combine_url(options.url, index);
-			return ajax('DELETE', url, data).then(function(d) {
-				// TODO full update
-				arr.splice(index, 1);
+			return ajax('DELETE', url).then(function(d) {
+				if (options.fullUpdate(d)) return d;
+				items.splice(index, 1);
+				return d;
 			}).fail(function(error) {
 				// TODO validation error
+			});
+		};
+
+		function update_item(newItem, index) {
+			var underlyingArray = items.peek();
+			var item = underlyingArray[index];
+			if (isObject(item) && typeof item.update == 'function') {
+				item.update(newItem);
+			} else {
+				// primitive value, just replace
+				underlyingArray[index] = newItem;
+			}
+		}
+
+		items.update = function(array) {
+			// update existing items
+			var len = items().length, i = 0;
+			for (; i < array.length && i < len; i++) {
+				update_item(array[i], i);
+			}
+			if (len > array.length) {
+				items.splice(array.length, len - array.length);
+			} else if (array.length > len) {
+				for (i = len; i < array.length; i++) {
+					items.push(wrap_item(array[i], i, options));
+				}
+			} else {
+				items.valueHasMutated();
+			}
+		};
+
+		items.sync = function() {
+			return ajax('GET', options.url).then(function(array){
+				items.update(array);
+				return array;
 			});
 		};
 
 		// add and wrap existing items
-		value.forEach(function(item, index){
-			arr.push(wrap_item(item, index, options));
+		array.forEach(function(item, index) {
+			items.push(wrap_item(item, index, options));
 		});
 
-		return arr;
+		return items;
 	}
 
 	function wrap_item(item, index, options) {
 		// do not wrap primitive arrays
 		if (isObject(item)) {
 			var opts = append_url(options, index);
-			return wrap_value(item, opts);
+			return wrap_object(item, opts);
 		}
 		return item;
 	}
 
-	function ajax(verb, url, data) {
-		return $.ajax({
-			type: verb,
-			url: url,
-			contentType: "application/json",
-			data: JSON.stringify(data),
-			dataType: 'json'
+	// updates observable fields
+	function update_object(wrapper, obj) {
+		Object.keys(wrapper).forEach(function(key) {
+			if (obj.hasOwnProperty(key)) {
+				var cur = wrapper[key];
+				var val = obj[key];
+				if (typeof cur.update == 'function') {
+					cur.update(val);
+				}
+			} else {
+				// TODO custom handler
+				delete wrapper[key];
+			}
 		});
 	}
 
-	function make_obj(key, val) {
-		var o = {};
-		o[key] = val;
-		return o;
+	function ajax(verb, url, data) {
+		var req = {
+			type: verb,
+			url: url
+		};
+		if (data) {
+			req = $.extend(req, {
+				contentType: "application/json",
+				data: JSON.stringify(data),
+				dataType: 'json'
+			});
+		}
+		return $.ajax(req);
 	}
 
 	function append_url(options, path) {
