@@ -48,7 +48,7 @@
 			update_object(wrapper, obj);
 		};
 
-		wrapper.sync = function() {
+		wrapper.fetch = function() {
 			return ajax('GET', options.url).done(function(obj) {
 				update_object(wrapper, obj);
 				return obj;
@@ -105,7 +105,7 @@
 			}
 		});
 
-		property.sync = function() {
+		property.fetch = function() {
 			return ajax('GET', options.url).then(function(val) {
 				field(val);
 				return val;
@@ -177,7 +177,7 @@
 			}
 		};
 
-		items.sync = function() {
+		items.fetch = function() {
 			return ajax('GET', options.url).then(function(array){
 				items.update(array);
 				return array;

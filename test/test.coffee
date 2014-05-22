@@ -140,7 +140,7 @@ describe 'ko.rest', ->
 			opts.type.should.eql 'DELETE'
 			opts.url.should.eql '/model/items/0'
 
-	describe 'should sync', ->
+	describe 'should fetch', ->
 		oldAjax = $.ajax
 		result = 'test'
 
@@ -157,26 +157,26 @@ describe 'ko.rest', ->
 			obj = {name: 'test'}
 			result = {name: 'new'}
 			m = ko.rest obj, {url: '/model'}
-			m.sync()
+			m.fetch()
 			m.name().should.eql result.name
 
 		it 'property', ->
 			obj = {name: 'test'}
 			result = 'new'
 			m = ko.rest obj, {url: '/model'}
-			m.name.sync()
+			m.name.fetch()
 			m.name().should.eql result
 
 		it 'object with array', ->
 			obj = {items: ['test']}
 			result = {items: ['a', 'b']}
 			m = ko.rest obj, {url: '/model'}
-			m.sync()
+			m.fetch()
 			m.items().should.eql ['a', 'b']
 
 		it 'array', ->
 			obj = {items: ['test']}
 			result = ['a', 'b']
 			m = ko.rest obj, {url: '/model'}
-			m.items.sync()
+			m.items.fetch()
 			m.items().should.eql ['a', 'b']
