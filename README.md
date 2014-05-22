@@ -21,5 +21,6 @@ Wrapper has the following methods.
 * `fetch():promise` - fetches latest version of object from server.
 
 [![NPM version](https://badge.fury.io/js/korest.png)](http://badge.fury.io/js/)
+[![Bower version](https://badge.fury.io/bo/korest.svg)](http://badge.fury.io/bo/korest)
 
 [![NPM](https://nodei.co/npm/korest.png?downloads=true&stars=true)](https://nodei.co/npm/korest/)
