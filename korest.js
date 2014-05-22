@@ -22,12 +22,12 @@
 		var root;
 
 		// deep update when response has the whole model
-		options.fullUpdate = function(d) {
-			if (!d.hasOwnProperty(options.modelKey)) {
-				return false;
+		options.fullUpdate = function(res) {
+			if (res !== null && res.hasOwnProperty(options.modelKey)) {
+				root.update(res[options.modelKey]);
+				return true;
 			}
-			root.update(d[options.modelKey]);
-			return true;
+			return false;
 		};
 
 		root = wrap_object(obj, options);
@@ -95,10 +95,10 @@
 			},
 			write: function(newValue) {
 				if (field() === newValue) return;
-				ajax('UPDATE', options.url, newValue).then(function(d) {
-					if (options.fullUpdate(d)) return d;
+				ajax('UPDATE', options.url, {value: newValue}).then(function(res) {
+					if (options.fullUpdate(res)) return res;
 					field(newValue);
-					return d;
+					return res;
 				}).fail(function(error) {
 					// TODO validation error
 				});
@@ -129,10 +129,10 @@
 		// TODO support insert operation
 
 		items.add = function(args) {
-			return ajax('PUT', options.url, args).then(function(d) {
-				if (options.fullUpdate(d)) return d;
-				items.push(wrap_item(d, items.length));
-				return d;
+			return ajax('PUT', options.url, args).then(function(res) {
+				if (options.fullUpdate(res)) return res;
+				items.push(wrap_item(res, items.length, options));
+				return res;
 			}).fail(function(error) {
 				// TODO validation error
 			});
@@ -140,10 +140,10 @@
 
 		items.removeAt = function(index) {
 			var url = combine_url(options.url, index);
-			return ajax('DELETE', url).then(function(d) {
-				if (options.fullUpdate(d)) return d;
+			return ajax('DELETE', url).then(function(res) {
+				if (options.fullUpdate(res)) return res;
 				items.splice(index, 1);
-				return d;
+				return res;
 			}).fail(function(error) {
 				// TODO validation error
 			});
@@ -232,6 +232,7 @@
 			type: verb,
 			url: url
 		};
+
 		if (data) {
 			req = $.extend(req, {
 				contentType: "application/json",
@@ -239,7 +240,17 @@
 				dataType: 'json'
 			});
 		}
-		return $.ajax(req);
+
+		return $.ajax(req).then(function(res) {
+			// unwrap d
+			if (res.hasOwnProperty('d')) {
+				res = res.d;
+				if (typeof res == "string") {
+					res = JSON.parse(res);
+				}
+			}
+			return res;
+		});
 	}
 
 	function append_url(options, path) {
