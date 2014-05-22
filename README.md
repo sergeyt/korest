@@ -6,7 +6,19 @@
 
 # korest
 
-Maps JSON object into knockout observable with bound REST actions
+Maps JSON object into knockout observable with bound REST actions. Similar to [knockout.mapping](https://github.com/SteveSanderson/knockout.mapping),
+but it is more simple and lightweight.
+
+## API
+
+`ko.rest(obj, options)` - wraps given plain JS object into object with knockout observable fields bound to REST actions. `options`:
+* `url` - specifies root url to REST resource.
+
+Wrapper has the following methods.
+
+* `unwrap():Object` - unwraps to plain JS object.
+* `update(obj):void` - updates observable fields with values from given plain JS object.
+* `fetch():promise` - fetches latest version of object from server.
 
 [![NPM version](https://badge.fury.io/js/korest.png)](http://badge.fury.io/js/)
 
