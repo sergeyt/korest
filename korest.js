@@ -131,7 +131,7 @@
 		items.add = function(args) {
 			return ajax('PUT', options.url, args).then(function(res) {
 				if (options.fullUpdate(res)) return res;
-				items.push(wrap_item(res, items.length, options));
+				items.push(wrap_item(items, res, items.length, options));
 				return res;
 			}).fail(function(error) {
 				// TODO validation error
@@ -170,7 +170,7 @@
 				items.splice(array.length, len - array.length);
 			} else if (array.length > len) {
 				for (i = len; i < array.length; i++) {
-					items.push(wrap_item(array[i], i, options));
+					items.push(wrap_item(items, array[i], i, options));
 				}
 			} else {
 				items.valueHasMutated();
@@ -196,17 +196,21 @@
 
 		// add and wrap existing items
 		array.forEach(function(item, index) {
-			items.push(wrap_item(item, index, options));
+			items.push(wrap_item(items, item, index, options));
 		});
 
 		return items;
 	}
 
-	function wrap_item(item, index, options) {
+	function wrap_item(items, item, index, options) {
 		// do not wrap primitive arrays
 		if (isObject(item)) {
 			var opts = append_url(options, index);
-			return wrap_object(item, opts);
+			var witem = wrap_object(item, opts);
+			witem.remove = function() {
+				return items.removeAt(index);
+			};
+			return witem;
 		}
 		return item;
 	}
@@ -220,6 +224,8 @@
 				if ($.isFunction(cur.update)) {
 					cur.update(val);
 				}
+			} else if ($.isFunction(wrapper[key])) {
+				// preserve functions
 			} else {
 				// TODO custom handler
 				delete wrapper[key];
