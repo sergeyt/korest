@@ -251,8 +251,12 @@
 			// unwrap d
 			if (res.hasOwnProperty('d')) {
 				res = res.d;
+				// try to parse JSON
 				if (typeof res == "string") {
-					res = JSON.parse(res);
+					try {
+						res = JSON.parse(res);
+					} catch (err) {
+					}
 				}
 			}
 			return res;
