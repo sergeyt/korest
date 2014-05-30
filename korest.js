@@ -87,6 +87,7 @@
 
 	function wrap_property(value, options) {
 		var field = ko.observable(value);
+		var error = ko.observable('');
 
 		var property = ko.computed({
 			read: function() {
@@ -98,22 +99,27 @@
 				ajax('UPDATE', options.url, {value: newValue}).then(function(res) {
 					if (options.fullUpdate(res)) return res;
 					field(newValue);
+					error('');
 					return res;
-				}).fail(function(error) {
-					// TODO validation error
+				}).fail(function(xhr, status, err) {
+					error(xhr_error(xhr, err));
 				});
 			}
 		});
 
+		property.error = error;
+
 		property.fetch = function() {
 			return ajax('GET', options.url).then(function(val) {
 				field(val);
+				error('');
 				return val;
 			});
 		};
 
 		property.update = function(newValue) {
 			field(newValue);
+			error('');
 		};
 
 		property.unwrap = function() {
@@ -261,6 +267,25 @@
 			}
 			return res;
 		});
+	}
+
+	function xhr_error(xhr, err) {
+		if (xhr && xhr.status) {
+			if (xhr.responseJSON) {
+				var data = xhr.responseJSON.d ? xhr.responseJSON.d : xhr.responseJSON;
+				if (data.Message) {
+					return data.Message;
+				}
+			}
+			if (xhr.responseText) {
+				var m = (/<title>([^<]*)<\/title>/).exec(xhr.responseText);
+				if (m) {
+					return m[1];
+				}
+			}
+			return xhr.statusText;
+		}
+		return err;
 	}
 
 	function append_url(options, path) {
