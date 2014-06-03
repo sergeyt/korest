@@ -86,44 +86,54 @@
 	}
 
 	function wrap_property(value, options) {
-		var field = ko.observable(value);
-		var error = ko.observable('');
 
-		var property = ko.computed({
-			read: function() {
-				// TODO GET latest value from server
-				return field();
-			},
-			write: function(newValue) {
-				if (field() === newValue) return;
-				ajax('UPDATE', options.url, {value: newValue}).then(function(res) {
-					if (options.fullUpdate(res)) return res;
-					field(newValue);
-					error('');
-					return res;
-				}).fail(function(xhr, status, err) {
-					error(xhr_error(xhr, err));
-				});
-			}
+		var property;
+
+		function get_value() {
+			return property.field();
+		}
+
+		function set_value(newValue) {
+			if (property.field() === newValue) return $.Deferred().resolve(newValue).promise();
+			return ajax('UPDATE', options.url, {value: newValue}).then(function(res) {
+				if (options.fullUpdate(res)) return res;
+				property.field(newValue);
+				property.error('');
+				return res;
+			}).fail(function(xhr, status, err) {
+				property.error(xhr_error(xhr, err));
+			});
+		}
+
+		property = ko.computed({
+			read: get_value,
+			write: set_value,
+			deferEvaluation: true
 		});
 
-		property.error = error;
+		property.field = ko.observable(value);
+		property.error = ko.observable('');
+		property.get = get_value;
+		property.set = set_value;
 
 		property.fetch = function() {
 			return ajax('GET', options.url).then(function(val) {
-				field(val);
-				error('');
+				property.field(val);
+				property.error('');
 				return val;
+			}).fail(function(xhr, status, err){
+				property.error(xhr_error(xhr, err));
 			});
 		};
 
 		property.update = function(newValue) {
-			field(newValue);
-			error('');
+			property.field(newValue);
+			property.error('');
+			return newValue;
 		};
 
 		property.unwrap = function() {
-			return field();
+			return property.field();
 		};
 
 		return property;
@@ -131,6 +141,9 @@
 
 	function wrap_array(array, options) {
 		var items = ko.observableArray();
+		var error = ko.observable('');
+
+		items.error = error;
 
 		// TODO support insert operation
 
@@ -139,8 +152,8 @@
 				if (options.fullUpdate(res)) return res;
 				items.push(wrap_item(items, res, items.length, options));
 				return res;
-			}).fail(function(error) {
-				// TODO validation error
+			}).fail(function(xhr, status, err) {
+				error(xhr_error(xhr, err));
 			});
 		};
 
@@ -150,8 +163,8 @@
 				if (options.fullUpdate(res)) return res;
 				items.splice(index, 1);
 				return res;
-			}).fail(function(error) {
-				// TODO validation error
+			}).fail(function(xhr, status, err) {
+				error(xhr_error(xhr, err));
 			});
 		};
 
@@ -187,6 +200,8 @@
 			return ajax('GET', options.url).then(function(array){
 				items.update(array);
 				return array;
+			}).then(function(xhr, status, err){
+				error(xhr_error(xhr, err));
 			});
 		};
 
@@ -212,11 +227,11 @@
 		// do not wrap primitive arrays
 		if (isObject(item)) {
 			var opts = append_url(options, index);
-			var witem = wrap_object(item, opts);
-			witem.remove = function() {
+			var wrapper = wrap_object(item, opts);
+			wrapper.remove = function() {
 				return items.removeAt(index);
 			};
-			return witem;
+			return wrapper;
 		}
 		return item;
 	}
@@ -272,9 +287,10 @@
 	function xhr_error(xhr, err) {
 		if (xhr && xhr.status) {
 			if (xhr.responseJSON) {
-				var data = xhr.responseJSON.d ? xhr.responseJSON.d : xhr.responseJSON;
-				if (data.Message) {
-					return data.Message;
+				var d = xhr.responseJSON.d ? xhr.responseJSON.d : xhr.responseJSON;
+				var msg = d.Message || d.Error || d.error;
+				if (msg) {
+					return msg;
 				}
 			}
 			if (xhr.responseText) {

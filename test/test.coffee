@@ -22,82 +22,82 @@ describe 'ko.rest', ->
 	describe 'should wrap', ->
 		it 'simple object', ->
 			obj = {name: 'test'}
-			m = ko.rest obj, {url: '/model'}
-			ko.isObservable(m.name).should.be.true;
+			model = ko.rest obj, {url: '/model'}
+			ko.isObservable(model.name).should.be.true
 			obj = {name: 'test'}
-			m = ko.rest obj, {url: '/model/'}
-			ko.isObservable(m.name).should.be.true;
+			model = ko.rest obj, {url: '/model/'}
+			ko.isObservable(model.name).should.be.true
 
 		it 'nested object', ->
 			obj = {info: {name: 'test'}}
-			m = ko.rest obj, {url: '/model'}
-			ko.isObservable(m.info.name).should.be.true;
+			model = ko.rest obj, {url: '/model'}
+			ko.isObservable(model.info.name).should.be.true
 
 		it 'simple array', ->
 			obj = {items: ['test']}
-			m = ko.rest obj, {url: '/model'}
-			ko.isObservable(m.items).should.be.true;
-			m.items().should.eql ['test']
+			model = ko.rest obj, {url: '/model'}
+			ko.isObservable(model.items).should.be.true
+			model.items().should.eql ['test']
 
 		it 'complex array', ->
 			obj = {items: [{value: 'test'}]}
-			m = ko.rest obj, {url: '/model'}
-			ko.isObservable(m.items).should.be.true;
-			m.items().length.should.eql(1)
-			ko.isObservable(m.items()[0].value).should.be.true;
-			m.items()[0].value().should.eql 'test'
+			model = ko.rest obj, {url: '/model'}
+			ko.isObservable(model.items).should.be.true
+			model.items().length.should.eql(1)
+			ko.isObservable(model.items()[0].value).should.be.true
+			model.items()[0].value().should.eql 'test'
 
 	describe 'should unwrap', ->
 		it 'simple object', ->
 			obj = {name: 'test'}
-			m = ko.rest obj, {url: '/model'}
-			m.unwrap().should.eql obj
+			model = ko.rest obj, {url: '/model'}
+			model.unwrap().should.eql obj
 
 		it 'nested object', ->
 			obj = {info: {name: 'test'}}
-			m = ko.rest obj, {url: '/model'}
-			m.unwrap().should.eql obj
+			model = ko.rest obj, {url: '/model'}
+			model.unwrap().should.eql obj
 
 		it 'simple array', ->
 			obj = {items: ['test']}
-			m = ko.rest obj, {url: '/model'}
-			m.unwrap().should.eql obj
+			model = ko.rest obj, {url: '/model'}
+			model.unwrap().should.eql obj
 
 		it 'complex array', ->
 			obj = {items: [{value: 'test'}]}
-			m = ko.rest obj, {url: '/model'}
-			m.unwrap().should.eql obj
+			model = ko.rest obj, {url: '/model'}
+			model.unwrap().should.eql obj
 
 	describe 'should update', ->
 		it 'simple object', ->
 			obj = {name: 'test'}
-			m = ko.rest obj, {url: '/model'}
-			m.update {name: 'new'}
-			m.name().should.eql 'new'
+			model = ko.rest obj, {url: '/model'}
+			model.update {name: 'new'}
+			model.name().should.eql 'new'
 
 		it 'nested object', ->
 			obj = {info: {name: 'test'}}
-			m = ko.rest obj, {url: '/model'}
-			m.update {info: {name: 'new'}}
-			m.info.name().should.eql 'new'
+			model = ko.rest obj, {url: '/model'}
+			model.update {info: {name: 'new'}}
+			model.info.name().should.eql 'new'
 
 		it 'simple array', ->
 			obj = {items: ['test']}
-			m = ko.rest obj, {url: '/model'}
-			m.items.update ['a', 'b']
-			m.items().should.eql ['a', 'b']
-			m.items.update ['c']
-			m.items().should.eql ['c']
-			m.items.update ['d']
-			m.items().should.eql ['d']
+			model = ko.rest obj, {url: '/model'}
+			model.items.update ['a', 'b']
+			model.items().should.eql ['a', 'b']
+			model.items.update ['c']
+			model.items().should.eql ['c']
+			model.items.update ['d']
+			model.items().should.eql ['d']
 
 		it 'complex array', ->
 			obj = {items: [{value: 'test'}]}
-			m = ko.rest obj, {url: '/model'}
-			m.update {items: [{value: 'a'}, {value: 'b'}]}
-			m.items().length.should.eql(2)
-			m.items()[0].value().should.eql 'a'
-			m.items()[1].value().should.eql 'b'
+			model = ko.rest obj, {url: '/model'}
+			model.update {items: [{value: 'a'}, {value: 'b'}]}
+			model.items().length.should.eql(2)
+			model.items()[0].value().should.eql 'a'
+			model.items()[1].value().should.eql 'b'
 
 	describe 'should call $.ajax', ->
 		oldAjax = $.ajax
@@ -105,7 +105,7 @@ describe 'ko.rest', ->
 		spy = null
 
 		afterEach ->
-			$.ajax = oldAjax;
+			$.ajax = oldAjax
 
 		beforeEach ->
 			spy = sinon.spy()
@@ -115,27 +115,27 @@ describe 'ko.rest', ->
 
 		it 'using UPDATE verb', ->
 			obj = {name: 'test'}
-			m = ko.rest obj, {url: '/model'}
-			m.name 'abc'
-			spy.calledOnce.should.be.true;
+			model = ko.rest obj, {url: '/model'}
+			model.name 'abc'
+			spy.calledOnce.should.be.true
 			opts = spy.args[0][0]
 			opts.type.should.eql 'UPDATE'
 			opts.url.should.eql '/model/name'
 
 		it 'using PUT verb', ->
 			obj = {items: ['test']}
-			m = ko.rest obj, {url: '/model'}
-			m.items.add 'abc'
-			spy.calledOnce.should.be.true;
+			model = ko.rest obj, {url: '/model'}
+			model.items.add 'abc'
+			spy.calledOnce.should.be.true
 			opts = spy.args[0][0]
 			opts.type.should.eql 'PUT'
 			opts.url.should.eql '/model/items'
 
 		it 'using DELETE verb', ->
 			obj = {items: ['test']}
-			m = ko.rest obj, {url: '/model'}
-			m.items.removeAt(0)
-			spy.calledOnce.should.be.true;
+			model = ko.rest obj, {url: '/model'}
+			model.items.removeAt(0)
+			spy.calledOnce.should.be.true
 			opts = spy.args[0][0]
 			opts.type.should.eql 'DELETE'
 			opts.url.should.eql '/model/items/0'
@@ -145,38 +145,174 @@ describe 'ko.rest', ->
 		result = 'test'
 
 		afterEach ->
-			$.ajax = oldAjax;
+			$.ajax = oldAjax
 
 		beforeEach ->
-			spy = sinon.spy()
 			$.ajax = ->
-				spy.apply spy, [].slice.call(arguments)
 				$.Deferred().resolve(result).promise()
 
 		it 'simple object', ->
 			obj = {name: 'test'}
 			result = {name: 'new'}
-			m = ko.rest obj, {url: '/model'}
-			m.fetch()
-			m.name().should.eql result.name
+			model = ko.rest obj, {url: '/model'}
+			model.fetch()
+			model.name().should.eql result.name
 
 		it 'property', ->
 			obj = {name: 'test'}
 			result = 'new'
-			m = ko.rest obj, {url: '/model'}
-			m.name.fetch()
-			m.name().should.eql result
+			model = ko.rest obj, {url: '/model'}
+			model.name.fetch()
+			model.name().should.eql result
 
 		it 'object with array', ->
 			obj = {items: ['test']}
 			result = {items: ['a', 'b']}
-			m = ko.rest obj, {url: '/model'}
-			m.fetch()
-			m.items().should.eql ['a', 'b']
+			model = ko.rest obj, {url: '/model'}
+			model.fetch()
+			model.items().should.eql ['a', 'b']
 
 		it 'array', ->
 			obj = {items: ['test']}
 			result = ['a', 'b']
-			m = ko.rest obj, {url: '/model'}
-			m.items.fetch()
-			m.items().should.eql ['a', 'b']
+			model = ko.rest obj, {url: '/model'}
+			model.items.fetch()
+			model.items().should.eql ['a', 'b']
+
+	describe 'property', ->
+		oldAjax = $.ajax
+		result = $.Deferred().resolve('test').promise()
+		model = null
+
+		beforeEach ->
+			obj = {name: 'test'}
+			model = ko.rest obj, {url: '/model'}
+			$.ajax = -> result
+
+		afterEach ->
+			result = $.Deferred().resolve('test').promise()
+			$.ajax = oldAjax
+
+		it 'should have observable error', ->
+			ko.isObservable(model.name.error).should.be.true
+			model.name.error().should.eql('')
+
+		it 'setter should be thenable', ->
+			for _ in [0..1]
+				spy = sinon.spy()
+				model.name.set('value').then spy
+				spy.calledOnce.should.be.true
+
+		it 'should set error on failed write', ->
+			result = $.Deferred().reject({}, 'error', 'error')
+			model.name 'error'
+			model.name.error().should.eql('error')
+
+	describe 'property should reset error', ->
+		oldAjax = $.ajax
+		model = null
+
+		beforeEach ->
+			obj = {name: 'test'}
+			model = ko.rest obj, {url: '/model'}
+			model.name.error 'error'
+			$.ajax = ->
+				$.Deferred().resolve('test').promise()
+
+		afterEach ->
+			$.ajax = oldAjax
+
+		it 'on successful write', ->
+			model.name.set 'ok'
+			model.name.error().should.eql ''
+
+		it 'on update', ->
+			model.name.update 'ok'
+			model.name.error().should.eql ''
+
+		it 'on fetch', ->
+			model.name.fetch()
+			model.name.error().should.eql ''
+
+	describe 'property should set error from xhr.responseJSON', ->
+		oldAjax = $.ajax
+		data = {}
+		obj = {name: 'test'}
+		model = null
+
+		beforeEach ->
+			model = ko.rest obj, {url: '/model'}
+			$.ajax = ->
+				$.Deferred().reject({status: 'error', responseJSON: data}, 'error', 'error').promise();
+
+		afterEach ->
+			$.ajax = oldAjax
+
+		test = (d) ->
+			data = d
+			model.name.set 'error'
+			model.name.error().should.eql 'message'
+
+		it '.d.Message', ->
+			test {d:{Message: 'message'}}
+
+		it '.Message', ->
+			test {Message: 'message'}
+
+		it '.d.Error', ->
+			test {d:{Error: 'message'}}
+
+		it '.Error', ->
+			test {Error: 'message'}
+
+		it '.d.error', ->
+			test {d:{error: 'message'}}
+
+		it '.error', ->
+			test {error: 'message'}
+
+	describe 'property should set error from xhr.responseText', ->
+		oldAjax = $.ajax
+		text = ''
+		model = null
+
+		beforeEach ->
+			obj = {name: 'test'}
+			model = ko.rest obj, {url: '/model'}
+			$.ajax = ->
+				$.Deferred().reject({status: 'error', responseText: text}, 'error', 'error').promise()
+
+		afterEach ->
+			$.ajax = oldAjax
+
+		it 'html title', ->
+			msg = 'internal error'
+			text = "<title>#{msg}</title>"
+			model.name.set 'error'
+			model.name.error().should.eql msg
+
+	describe 'full-update', ->
+		oldAjax = $.ajax
+		result = {}
+		model = null
+
+		beforeEach ->
+			obj = {name: 'test'}
+			model = ko.rest obj, {url: '/model'}
+			$.ajax = ->
+				$.Deferred().resolve(result).promise()
+
+		afterEach ->
+			result = {}
+			$.ajax = oldAjax
+
+		it 'on ViewModel response should update model', ->
+			result = {d: JSON.stringify {ViewModel:{name: 'name'}}}
+			spy = sinon.spy()
+			up = model.update;
+			model.update = (obj) ->
+				spy obj
+				up obj
+			model.name('val')
+			model.name().should.eql('name')
+			spy.calledOnce.should.be.true
