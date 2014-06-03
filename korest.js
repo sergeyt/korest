@@ -229,19 +229,8 @@
 			var opts = append_url(options, index);
 			var wrapper = wrap_object(item, opts);
 
-			wrapper.error = ko.observable('');
-
 			wrapper.remove = function() {
 				return items.removeAt(index);
-			};
-
-			wrapper.fetch = function() {
-				return ajax('GET', opts.url).then(function(it) {
-					wrapper.update(it);
-					return it;
-				}).then(function(xhr, status, err) {
-					wrapper.error(xhr_error(xhr, err));
-				});
 			};
 
 			return wrapper;
