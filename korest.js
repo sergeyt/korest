@@ -49,6 +49,7 @@
 		};
 
 		wrapper.fetch = function() {
+			// TODO set last __error__
 			return ajax('GET', options.url).done(function(obj) {
 				update_object(wrapper, obj);
 				return obj;
@@ -87,21 +88,24 @@
 
 	function wrap_property(value, options) {
 
+		var field = ko.observable(value);
 		var property;
 
 		function get_value() {
-			return property.field();
+			return field();
 		}
 
 		function set_value(newValue) {
-			if (property.field() === newValue) return $.Deferred().resolve(newValue).promise();
+			property.error('');
+			if (field() === newValue) {
+				return $.Deferred().resolve(newValue).promise();
+			}
 			return ajax('UPDATE', options.url, {value: newValue}).then(function(res) {
 				if (options.fullUpdate(res)) return res;
-				property.field(newValue);
-				property.error('');
+				field(newValue);
 				return res;
-			}).fail(function(xhr, status, err) {
-				property.error(xhr_error(xhr, err));
+			}).fail(function(err) {
+				property.error(err);
 			});
 		}
 
@@ -111,29 +115,28 @@
 			deferEvaluation: true
 		});
 
-		property.field = ko.observable(value);
 		property.error = ko.observable('');
 		property.get = get_value;
 		property.set = set_value;
 
 		property.fetch = function() {
 			return ajax('GET', options.url).then(function(val) {
-				property.field(val);
+				field(val);
 				property.error('');
 				return val;
-			}).fail(function(xhr, status, err){
-				property.error(xhr_error(xhr, err));
+			}).fail(function(err){
+				property.error(err);
 			});
 		};
 
 		property.update = function(newValue) {
-			property.field(newValue);
+			field(newValue);
 			property.error('');
 			return newValue;
 		};
 
 		property.unwrap = function() {
-			return property.field();
+			return field();
 		};
 
 		return property;
@@ -152,8 +155,8 @@
 				if (options.fullUpdate(res)) return res;
 				items.push(wrap_item(items, res, items.length, options));
 				return res;
-			}).fail(function(xhr, status, err) {
-				error(xhr_error(xhr, err));
+			}).fail(function(err) {
+				error(err);
 			});
 		};
 
@@ -163,8 +166,8 @@
 				if (options.fullUpdate(res)) return res;
 				items.splice(index, 1);
 				return res;
-			}).fail(function(xhr, status, err) {
-				error(xhr_error(xhr, err));
+			}).fail(function(err) {
+				error(err);
 			});
 		};
 
@@ -186,6 +189,10 @@
 				update_item(array[i], i);
 			}
 			if (len > array.length) {
+				// fake update to reset errors
+				for (i = array.length; i < len; i++) {
+					update_item(items()[i], i);
+				}
 				items.splice(array.length, len - array.length);
 			} else if (array.length > len) {
 				for (i = len; i < array.length; i++) {
@@ -197,11 +204,11 @@
 		};
 
 		items.fetch = function() {
-			return ajax('GET', options.url).then(function(array){
+			return ajax('GET', options.url).then(function(array) {
 				items.update(array);
 				return array;
-			}).then(function(xhr, status, err){
-				error(xhr_error(xhr, err));
+			}).fail(function(err) {
+				error(err);
 			});
 		};
 
@@ -259,7 +266,8 @@
 	function ajax(verb, url, data) {
 		var req = {
 			type: verb,
-			url: url
+			url: url,
+			cache: false
 		};
 
 		if (data) {
@@ -270,38 +278,45 @@
 			});
 		}
 
-		return $.ajax(req).then(function(res) {
-			// unwrap d
-			if (res.hasOwnProperty('d')) {
-				res = res.d;
-				// try to parse JSON
-				if (typeof res == "string") {
-					try {
-						res = JSON.parse(res);
-					} catch (err) {
+		return $.ajax(req).then(
+			function(res) {
+				// unwrap d
+				if (res.hasOwnProperty('d')) {
+					res = res.d;
+					// try to parse JSON
+					if (typeof res == "string") {
+						try {
+							res = JSON.parse(res);
+						} catch (err) {
+						}
 					}
 				}
-			}
-			return res;
-		});
+				if (res && (res.Error || res.error)) {
+					return $.Deferred().reject(res.Error || res.error).promise();
+				}
+				return res;
+			},
+			function(xhr, status, err) {
+				return resolve_error(xhr, err);
+			});
 	}
 
-	function xhr_error(xhr, err) {
-		if (xhr && xhr.status) {
-			if (xhr.responseJSON) {
-				var d = xhr.responseJSON.d ? xhr.responseJSON.d : xhr.responseJSON;
-				var msg = d.Message || d.Error || d.error;
+	function resolve_error(req, err) {
+		if (req && req.status) {
+			var json = req.responseJSON;
+			if (json) {
+				var d = json.d ? json.d : json;
+				var msg = d.Error || d.error;
 				if (msg) {
 					return msg;
 				}
 			}
-			if (xhr.responseText) {
-				var m = (/<title>([^<]*)<\/title>/).exec(xhr.responseText);
-				if (m) {
-					return m[1];
-				}
+			var text = req.responseText;
+			if (text) {
+				var m = (/<title>([^<]*)<\/title>/).exec(text);
+				return m ? m[1] : text;
 			}
-			return xhr.statusText;
+			return req.statusText;
 		}
 		return err;
 	}
@@ -311,11 +326,18 @@
 		return $.extend({}, options, {url: url});
 	}
 
-	function combine_url(base, path) {
-		if (base.charAt(base.length - 1) == '/') {
-			return base + path;
+	function combine_url(url, path) {
+		url = url || '';
+		var qs = '';
+		var i = url.indexOf('?');
+		if (i >= 0) {
+			qs = url.substr(i);
+			url = url.substr(0, i);
 		}
-		return base + '/' + path;
+		if (url.charAt(url.length - 1) == '/') {
+			return url + path + qs;
+		}
+		return url + '/' + path + qs;
 	}
 
 	function isObject(value) {

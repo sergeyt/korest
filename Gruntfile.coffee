@@ -31,11 +31,18 @@ module.exports = (grunt) ->
 					ignores: ['*.min.js', 'src/*.min.js']
 				src: ['*.js', 'src/*.js']
 
+		coffeelint:
+			options:
+				no_tabs: {level: 'ignore'}
+				indentation: {level: 'ignore'}
+			all: ['*.coffee']
+
 		karma:
 			unit:
 				configFile: 'karma.conf.js'
 				singleRun: true
 
+	grunt.loadNpmTasks 'grunt-coffeelint'
 	grunt.loadNpmTasks 'grunt-contrib-jshint'
 	grunt.loadNpmTasks 'grunt-npm'
 	grunt.loadNpmTasks 'grunt-bump'
@@ -49,7 +56,6 @@ module.exports = (grunt) ->
 			'npm-publish'
 		]
 
-	grunt.registerTask 'lint', ['jshint']
+	grunt.registerTask 'lint', ['coffeelint', 'jshint']
 	grunt.registerTask 'test', ['lint', 'karma']
 	grunt.registerTask 'default', ['test']
-

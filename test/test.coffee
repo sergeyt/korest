@@ -234,42 +234,34 @@ describe 'ko.rest', ->
 			model.name.fetch()
 			model.name.error().should.eql ''
 
-	describe 'property should set error from xhr.responseJSON', ->
+	describe 'property should set error from AJAX request', ->
 		oldAjax = $.ajax
-		data = {}
-		obj = {name: 'test'}
-		model = null
-
-		beforeEach ->
-			model = ko.rest obj, {url: '/model'}
-			$.ajax = ->
-				$.Deferred().reject({status: 'error', responseJSON: data}, 'error', 'error').promise();
+		err = 'test error'
 
 		afterEach ->
 			$.ajax = oldAjax
 
 		test = (d) ->
-			data = d
-			model.name.set 'error'
-			model.name.error().should.eql 'message'
+			obj = {name: 'test'}
+			model = ko.rest obj, {url: '/model'}
 
-		it '.d.Message', ->
-			test {d:{Message: 'message'}}
+			$.ajax = ->
+				$.Deferred().reject({status: 'error', responseJSON: d}, 'error', 'error').promise();
+			model.name.set 'a'
+			model.name.error().should.eql err
 
-		it '.Message', ->
-			test {Message: 'message'}
+			$.ajax = ->
+				$.Deferred().resolve(d).promise();
+			model.name.set 'b'
+			model.name.error().should.eql err
 
-		it '.d.Error', ->
-			test {d:{Error: 'message'}}
+		it 'Error or d.Error', ->
+			test {Error: err}
+			test {d:{Error: err}}
 
-		it '.Error', ->
-			test {Error: 'message'}
-
-		it '.d.error', ->
-			test {d:{error: 'message'}}
-
-		it '.error', ->
-			test {error: 'message'}
+		it 'error or d.error', ->
+			test {error: err}
+			test {d:{error: err}}
 
 	describe 'property should set error from xhr.responseText', ->
 		oldAjax = $.ajax
