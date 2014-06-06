@@ -1,6 +1,6 @@
 {
   "name": "korest",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "korest.js",
   "maintainers": [{
     "name": "Sergey Todyshev",
