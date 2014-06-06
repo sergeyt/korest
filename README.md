@@ -3,13 +3,12 @@
                                                                                  
 [![Deps Status](https://david-dm.org/sergeyt/korest.png)](https://david-dm.org/sergeyt/korest)
 [![DevDeps Status](https://david-dm.org/sergeyt/korest/dev-status.png)](https://david-dm.org/sergeyt/korest#info=devDependencies)
-
 [![Dependency Status](https://gemnasium.com/sergeyt/korest.svg)](https://gemnasium.com/sergeyt/korest)
 
 # korest
 
-Maps JSON object into knockout observable with bound REST actions. Similar to [knockout.mapping](https://github.com/SteveSanderson/knockout.mapping),
-but it is more simple and lightweight.
+Function for [knockout.js](http://knockoutjs.com/) to map plain object into knockout observable with bound REST actions.
+Similar to [knockout.mapping](https://github.com/SteveSanderson/knockout.mapping), but it is more simple and lightweight.
 
 ## API
 

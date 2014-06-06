@@ -1,3 +1,9 @@
+/*
+ * korest.js v0.0.7 - maps plain object into knockout observable with bound REST actions.
+ * https://github.com/sergeyt/korest
+ * Licensed under MIT (https://github.com/sergeyt/korest/blob/master/LICENSE)
+ */
+
 (function(ko){
 
 	var defaults = {
@@ -153,7 +159,7 @@
 		items.add = function(args) {
 			return ajax('PUT', options.url, args).then(function(res) {
 				if (options.fullUpdate(res)) return res;
-				items.push(wrap_item(items, res, items.length, options));
+				items.push(wrap_item(items, res, items().length, options));
 				return res;
 			}).fail(function(err) {
 				error(err);
