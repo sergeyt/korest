@@ -308,3 +308,76 @@ describe 'ko.rest', ->
 			model.name('val')
 			model.name().should.eql('name')
 			spy.calledOnce.should.be.true
+
+	describe 'with array api you', ->
+		oldAjax = $.ajax
+
+		afterEach ->
+			$.ajax = oldAjax
+
+		it 'should add new item', ->
+			obj = {items: [{value: 'a'}]}
+			model = ko.rest obj, {url: '/model'}
+
+			# add item
+			spy = sinon.spy()
+			$.ajax = (req) ->
+				spy req
+				$.Deferred().resolve({value: 'b'}).promise()
+			model.items.add 'b'
+			req = spy.args[0][0]
+			req.type.should.be.eql 'PUT'
+			req.url.should.be.eql '/model/items'
+			model.items().length.should.eql 2
+			ko.isObservable(model.items()[1].value).should.be.true
+
+			# update item value
+			spy = sinon.spy()
+			$.ajax = (req) ->
+				spy req
+				$.Deferred().resolve({d:'c'}).promise()
+			model.items()[1].value('c')
+			req = spy.args[0][0]
+			req.type.should.be.eql 'UPDATE'
+			req.url.should.be.eql '/model/items/1/value'
+			model.items()[1].value().should.be.eql 'c'
+
+		it 'should remove item using items.removeAt', ->
+			obj = {
+				items: [
+					{value: 'a'},
+					{value: 'b'}
+				]
+			}
+			model = ko.rest obj, {url: '/model'}
+
+			spy = sinon.spy()
+			$.ajax = (req) ->
+				spy req
+				$.Deferred().resolve({d:null}).promise()
+
+			model.items.removeAt(1)
+			req = spy.args[0][0]
+			req.type.should.be.eql 'DELETE'
+			req.url.should.be.eql '/model/items/1'
+			model.items.unwrap().should.be.eql [{value: 'a'}]
+
+		it 'should remove item using item.remove', ->
+			obj = {
+				items: [
+					{value: 'a'},
+					{value: 'b'}
+				]
+			}
+			model = ko.rest obj, {url: '/model'}
+
+			spy = sinon.spy()
+			$.ajax = (req) ->
+				spy req
+				$.Deferred().resolve({d:null}).promise()
+
+			model.items()[1].remove()
+			req = spy.args[0][0]
+			req.type.should.be.eql 'DELETE'
+			req.url.should.be.eql '/model/items/1'
+			model.items.unwrap().should.be.eql [{value: 'a'}]
