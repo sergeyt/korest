@@ -5,6 +5,11 @@
 [![DevDeps Status](https://david-dm.org/sergeyt/korest/dev-status.png)](https://david-dm.org/sergeyt/korest#info=devDependencies)
 [![Dependency Status](https://gemnasium.com/sergeyt/korest.svg)](https://gemnasium.com/sergeyt/korest)
 
+[![NPM version](https://badge.fury.io/js/korest.png)](http://badge.fury.io/js/)
+[![Bower version](https://badge.fury.io/bo/korest.svg)](http://badge.fury.io/bo/korest)
+
+[![NPM](https://nodei.co/npm/korest.png?downloads=true&stars=true)](https://nodei.co/npm/korest/)
+
 # korest
 
 Function for [knockout.js](http://knockoutjs.com/) to map plain object into knockout observable with bound REST actions.
@@ -20,8 +25,3 @@ Wrapper has the following methods.
 * `unwrap():Object` - unwraps to plain JS object.
 * `update(obj):void` - updates observable fields with values from given plain JS object.
 * `fetch():promise` - fetches latest version of object from server.
-
-[![NPM version](https://badge.fury.io/js/korest.png)](http://badge.fury.io/js/)
-[![Bower version](https://badge.fury.io/bo/korest.svg)](http://badge.fury.io/bo/korest)
-
-[![NPM](https://nodei.co/npm/korest.png?downloads=true&stars=true)](https://nodei.co/npm/korest/)
