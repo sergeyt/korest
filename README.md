@@ -16,10 +16,9 @@ Function for [knockout.js](http://knockoutjs.com/) to map plain object into knoc
 Similar to [knockout.mapping](https://github.com/SteveSanderson/knockout.mapping), but it is more simple and lightweight.
 
 korest could be useful if you:
-
-	* have server-stateful view model
-	* have [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) interface to the view model
-	* don't want to manually write/sync client-side version of view model
+* have server-stateful view model
+* have [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) interface to the view model
+* don't want to manually write/sync client-side version of view model
 
 ## API
 
